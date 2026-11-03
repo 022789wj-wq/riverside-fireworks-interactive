@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#09101c">
+  <meta name="description" content="在同一片江畔夜空，亲手点燃四种烟花。点击天空，看烟花从地面升起并绽放。">
+  <title>江畔烟花 · 点亮这一刻</title>
+  <link rel="preload" href="assets/fireworks-original.jpg" as="image">
+  <style>
+    :root { color-scheme: dark; font-family: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #09101c; }
+    button { font: inherit; }
+    .scene { position: fixed; inset: 0; isolation: isolate; overflow: hidden; cursor: crosshair; touch-action: manipulation; outline: none; }
+    .photo { position: absolute; inset: 0; background-size: cover; background-position: center center; transition: opacity .65s ease; filter: brightness(.82) saturate(1.06); }
+    .photo-a { background-image: url('assets/fireworks-original.jpg'); opacity: 1; }
+    .photo-b { opacity: 0; }
+    .scene::after { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(180deg, rgba(4,10,23,.24) 0%, transparent 40%, transparent 65%, rgba(2,8,18,.4) 100%); }
+    #fireworks { position: absolute; inset: 0; z-index: 2; width: 100%; height: 100%; pointer-events: none; }
+    .ui { position: absolute; z-index: 3; pointer-events: none; color: #fff; }
+    .ui > * { pointer-events: auto; }
+    .topbar { top: 0; left: 0; right: 0; display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; padding: clamp(20px, 3vw, 38px); }
+    .brand { text-shadow: 0 2px 20px #0008; }
+    .eyebrow { margin: 0 0 9px; color: #f6dba6; font-size: 11px; letter-spacing: .34em; font-weight: 700; }
+    h1 { margin: 0; font-size: clamp(24px, 3.1vw, 42px); font-weight: 600; letter-spacing: .09em; line-height: 1.2; }
+    .subtitle { margin: 10px 0 0; font-size: clamp(12px, 1.25vw, 15px); color: #ecedf3; letter-spacing: .11em; }
+    .actions { display: flex; align-items: center; gap: 9px; }
+    .glass-button { border: 1px solid #ffffff66; color: #fff; background: #0b142d88; backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); padding: 10px 15px; border-radius: 999px; cursor: pointer; transition: background .2s, border-color .2s, transform .2s; white-space: nowrap; font-size: 13px; }
+    .glass-button:hover { background: #263651b8; transform: translateY(-2px); }
+    .glass-button[aria-pressed="true"] { border-color: #f4d79b; background: #73552ea8; }
+    .glass-button:focus-visible, .card:focus-visible, .scene:focus-visible { outline: 2px solid #fff0b6; outline-offset: 3px; }
+    .hint { top: 41%; left: 50%; transform: translate(-50%, -50%); pointer-events: none; text-align: center; transition: opacity .4s, transform .4s; }
+    .hint.hidden { opacity: 0; transform: translate(-50%, -44%); }
+    .hint-mark { display: inline-grid; place-items: center; width: 43px; height: 43px; margin-bottom: 14px; border: 1px solid #ffffffaa; border-radius: 50%; color: #ffe5b8; background: #0d1b3470; box-shadow: 0 0 25px #eaba7c55; font-size: 23px; font-weight: 300; }
+    .hint p { margin: 0; font-size: clamp(15px, 1.6vw, 19px); font-weight: 500; letter-spacing: .12em; text-shadow: 0 2px 15px #000; white-space: nowrap; }
+    .gallery-wrap { left: 50%; bottom: max(20px, env(safe-area-inset-bottom)); width: min(1030px, calc(100% - 38px)); transform: translateX(-50%); }
+    .gallery-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 3px 11px; color: #fff; text-shadow: 0 1px 9px #000; }
+    .gallery-title { font-size: 12px; font-weight: 700; letter-spacing: .2em; }
+    .gallery-tip { font-size: 12px; color: #f4e8d5; }
+    .gallery { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; padding: 10px; border: 1px solid #ffffff4d; border-radius: 20px; background: #08111dc4; box-shadow: 0 16px 42px #0008; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+    .card { position: relative; min-width: 0; height: clamp(72px, 9.2vw, 112px); overflow: hidden; border: 1px solid transparent; border-radius: 12px; padding: 0; background: #16203b; color: white; text-align: left; cursor: pointer; transition: transform .22s, border-color .22s, box-shadow .22s; }
+    .card:hover { transform: translateY(-3px); }
+    .card[aria-pressed="true"] { border-color: #ffdb9b; box-shadow: inset 0 0 0 1px #ffdb9b, 0 0 18px #e8bc7855; }
+    .card img { width: 100%; height: 100%; object-fit: cover; display: block; filter: brightness(.8); }
+    .card::after { content: ""; position: absolute; inset: 0; background: linear-gradient(transparent 38%, #020714e8); }
+    .card-label { position: absolute; z-index: 1; left: 11px; bottom: 9px; display: flex; align-items: baseline; gap: 8px; text-shadow: 0 1px 5px #000; }
+    .card-index { color: #f5ce9c; font-size: 11px; font-weight: 700; letter-spacing: .05em; }
+    .card-name { font-size: clamp(11px, 1.2vw, 15px); font-weight: 600; white-space: nowrap; }
+    .status { position: absolute; right: clamp(20px, 3vw, 38px); top: 104px; color: #fff; font-size: 12px; letter-spacing: .08em; text-shadow: 0 1px 10px #000; }
+    .status::before { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 8px; vertical-align: 2px; background: #fcd390; box-shadow: 0 0 10px #fcd390; }
+    @media (max-width: 650px) {
+      .topbar { padding: 20px 18px; }
+      .eyebrow { font-size: 9px; margin-bottom: 6px; }
+      h1 { font-size: 24px; }
+      .subtitle { font-size: 11px; margin-top: 6px; }
+      .actions { flex-direction: column; align-items: flex-end; }
+      .glass-button { padding: 8px 10px; font-size: 11px; }
+      .status { display: none; }
+      .gallery-wrap { width: calc(100% - 22px); bottom: max(10px, env(safe-area-inset-bottom)); }
+      .gallery { gap: 5px; padding: 6px; border-radius: 14px; }
+      .card { height: 84px; border-radius: 9px; }
+      .card-label { left: 6px; bottom: 6px; display: block; }
+      .card-index { display: block; font-size: 9px; }
+      .card-name { font-size: 10px; }
+      .gallery-tip { font-size: 10px; }
+      .hint { top: 43%; }
+    }
+    @media (prefers-reduced-motion: reduce) { .photo, .hint, .card, .glass-button { transition-duration: .01ms; } }
+  </style>
+</head>
+<body>
+  <main class="scene" id="scene" tabindex="0" aria-label="点击夜空，从江对岸发射烟花">
+    <div class="photo photo-a" id="photoA"></div>
+    <div class="photo photo-b" id="photoB"></div>
+    <canvas id="fireworks" aria-hidden="true"></canvas>
+
+    <header class="ui topbar">
+      <div class="brand">
+        <p class="eyebrow">RIVERSIDE FIREWORKS</p>
+        <h1>江畔烟花</h1>
+        <p class="subtitle">点亮这一刻 · 四种夜空随心切换</p>
+      </div>
+      <div class="actions">
+        <button class="glass-button" id="showBtn" type="button" aria-pressed="false">✦ 连续放映</button>
+        <button class="glass-button" id="soundBtn" type="button" aria-pressed="false">♪ 开启声音</button>
+      </div>
+    </header>
+
+    <div class="ui hint" id="hint" aria-hidden="true">
+      <span class="hint-mark">＋</span>
+      <p>点击夜空，放一束属于你的烟花</p>
+    </div>
+
+    <div class="ui status" id="status" aria-live="polite">璀璨夜空</div>
+
+    <div class="ui gallery-wrap">
+      <div class="gallery-top"><span class="gallery-title">选择烟花场景</span><span class="gallery-tip">点击天空发射 · 空格键随机发射</span></div>
+      <nav class="gallery" aria-label="选择烟花照片">
+        <button class="card" type="button" data-mode="original" aria-pressed="true" aria-label="选择璀璨夜空"><img src="assets/fireworks-original.jpg" alt="" loading="eager"><span class="card-label"><span class="card-index">01</span><span class="card-name">璀璨夜空</span></span></button>
+        <button class="card" type="button" data-mode="silver" aria-pressed="false" aria-label="选择蓝紫银瀑"><img src="assets/fireworks-silver.jpg" alt="" loading="lazy"><span class="card-label"><span class="card-index">02</span><span class="card-name">蓝紫银瀑</span></span></button>
+        <button class="card" type="button" data-mode="gold" aria-pressed="false" aria-label="选择金色盛放"><img src="assets/fireworks-gold.jpg" alt="" loading="lazy"><span class="card-label"><span class="card-index">03</span><span class="card-name">金色盛放</span></span></button>
+        <button class="card" type="button" data-mode="garden" aria-pressed="false" aria-label="选择粉红翠绿"><img src="assets/fireworks-garden.jpg" alt="" loading="lazy"><span class="card-label"><span class="card-index">04</span><span class="card-name">粉红翠绿</span></span></button>
+      </nav>
+    </div>
+  </main>
+  <script src="app.js" defer></script>
+</body>
+</html>
+
